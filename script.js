@@ -18,7 +18,8 @@ form.addEventListener('submit', async function (e) {
   }
 
   try {
-    const res = await fetch('http://localhost:3000/expenses', {
+    const res = await
+      fetch('https://expense-tracker-api-ugel.onrender.com/expenses', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -27,6 +28,8 @@ form.addEventListener('submit', async function (e) {
     });
 
     const data = await res.json();
+    console.log("Expense added:", data);
+    
     addExpenseToDOM(data);
 
     // Reset inputs
