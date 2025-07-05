@@ -6,6 +6,40 @@ const totalSpan = document.getElementById('total');
 
 let total = 0;
 
+// ✅ Function to render one expense with delete button
+function renderExpense(expense) {
+  const li = document.createElement('li');
+  li.textContent = `${expense.title} - ₹${expense.amount}`;
+
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '❌';
+  delBtn.style.marginLeft = '10px';
+  delBtn.style.color = 'red';
+  delBtn.style.cursor = 'pointer';
+
+  // ✅ Delete handler
+  delBtn.addEventListener('click', async () => {
+    try {
+      const res = await fetch(`https://expense-tracker-api-ugel.onrender.com/expenses/${expense._id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        li.remove();
+        total -= expense.amount;
+        totalSpan.textContent = total.toFixed(2);
+      } else {
+        console.error("Failed to delete:", res.status);
+      }
+    } catch (err) {
+      console.error("Error deleting:", err);
+    }
+  });
+
+  li.appendChild(delBtn);
+  expenseList.appendChild(li);
+}
+
 // ✅ Submit new expense
 form.addEventListener('submit', async function (e) {
   e.preventDefault();
@@ -38,16 +72,9 @@ form.addEventListener('submit', async function (e) {
 
     if (contentType && contentType.includes("application/json")) {
       const data = await res.json();
-      console.log("✅ Expense added:", data);
-
-      const li = document.createElement('li');
-      li.textContent = `${data.title} - ₹${data.amount}`;
-      expenseList.appendChild(li);
-
+      renderExpense(data); // 👈 add new expense to UI
       total += parseFloat(data.amount);
       totalSpan.textContent = total.toFixed(2);
-    } else {
-      console.error("❌ Unexpected content type:", contentType);
     }
   } catch (err) {
     console.error("❌ Error adding expense:", err);
@@ -61,17 +88,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (!res.ok) throw new Error("Failed to fetch expenses");
 
     const expenses = await res.json();
-    let total = 0;
+    total = 0;
 
     expenses.forEach(expense => {
-      const li = document.createElement('li');
-      li.textContent = `${expense.title} - ₹${expense.amount}`;
-      document.getElementById('expense-list').appendChild(li);
+      renderExpense(expense); // 👈 reuse render function
       total += expense.amount;
     });
 
-    document.getElementById('total').textContent = total.toFixed(2);
+    totalSpan.textContent = total.toFixed(2);
   } catch (err) {
-    console.error("Error loading expenses:", err);
+    console.error("❌ Error loading expenses:", err);
   }
 });
